@@ -1,0 +1,11 @@
+services:
+  mysql:
+    container_name: 'mysql-db'
+    image: 'mysql:latest'
+    environment:
+      - 'MYSQL_DATABASE=accounts-db'
+      - 'MYSQL_PASSWORD=Password1'
+      - 'MYSQL_ROOT_PASSWORD=Password1'
+      - 'MYSQL_USER=db-user'
+    ports:
+      - '3306:3306'
