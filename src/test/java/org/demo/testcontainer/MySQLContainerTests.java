@@ -47,7 +47,7 @@ public class MySQLContainerTests extends MySQLContainersConfiguration {
     @Test
     void test_container_dbuser_access() {
         Assertions.assertDoesNotThrow(() -> {
-            Connection connection = getConnection("dbuser", "Password1");
+            Connection connection = getConnection("db-user", "Password1");
 
             ResultSet resultSet = performQueryWithConnection(connection, "SELECT count(*) from Users");
             resultSet.next();

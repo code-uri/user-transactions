@@ -4,10 +4,10 @@
 CREATE DATABASE IF NOT EXISTS testdb;
 
 -- Create a new user and grant access to the new database
-CREATE USER 'dbuser'@'%' IDENTIFIED BY 'Password1';
+CREATE USER 'db-user'@'%' IDENTIFIED BY 'Password1';
 
 -- Grant all privileges on the new database to the new user
-GRANT ALL PRIVILEGES ON testdb.* TO 'dbuser'@'%';
+GRANT ALL PRIVILEGES ON testdb.* TO 'db-user'@'%';
 
 -- Apply changes
 FLUSH PRIVILEGES;

@@ -3,7 +3,7 @@ services:
     container_name: 'mysql-db'
     image: 'mysql:latest'
     environment:
-      - 'MYSQL_DATABASE=accounts-db'
+      - 'MYSQL_DATABASE=user_accounts_db'
       - 'MYSQL_PASSWORD=Password1'
       - 'MYSQL_ROOT_PASSWORD=Password1'
       - 'MYSQL_USER=db-user'
