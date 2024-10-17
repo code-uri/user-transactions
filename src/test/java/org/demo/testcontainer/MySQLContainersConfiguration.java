@@ -1,20 +1,23 @@
-package org.spacewell.user.transactions;
+package org.demo.testcontainer;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.utility.DockerImageName;
 
-@TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
+@TestConfiguration
+public class MySQLContainersConfiguration {
+
 
     @Bean
     @ServiceConnection
-    public MySQLContainer<?> mySQLContainer() {
+    public static MySQLContainer<?> mySQLContainer() {
         return new MySQLContainer<>("mysql:8.0.36")
+                .withDatabaseName("testdb")
                 .withInitScript("init_mysql.sql")
                 .withUsername("root")
-                .withPassword("secret");
+                .withPassword("secret")
+                .withUrlParam("logger", "com.mysql.cj.log.Slf4JLogger")
+                .withUrlParam("profileSQL", "true");
     }
 }

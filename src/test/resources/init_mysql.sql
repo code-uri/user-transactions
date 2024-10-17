@@ -1,21 +1,20 @@
 -- Replace 'your_database', 'your_user', and 'your_password' with your desired names and password.
 
 -- Create the database
-CREATE DATABASE user_transactions;
+CREATE DATABASE IF NOT EXISTS testdb;
 
 -- Create a new user and grant access to the new database
-CREATE USER 'db-user'@'%' IDENTIFIED BY 'Password1';
+CREATE USER 'dbuser'@'%' IDENTIFIED BY 'Password1';
 
 -- Grant all privileges on the new database to the new user
-GRANT ALL PRIVILEGES ON user_transactions.* TO 'db-user'@'%';
+GRANT ALL PRIVILEGES ON testdb.* TO 'dbuser'@'%';
 
 -- Apply changes
 FLUSH PRIVILEGES;
 
 
-
 -- Switch to the user_transactions database
-USE user_transactions;
+USE testdb;
 
 -- Create the Users table
 CREATE TABLE IF NOT EXISTS Users (
