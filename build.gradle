@@ -1,17 +1,21 @@
 plugins {
     id 'java-library'
-    id 'org.springframework.boot' version '3.2.10'
+    id 'org.springframework.boot' version '3.3.4'
 }
 
 apply plugin: 'io.spring.dependency-management'
 
-group = 'org.spacewell.user'
+group = 'org.demo.user'
 version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+compileJava {
+    options.compilerArgs << '-parameters'
 }
 
 configurations {
@@ -27,13 +31,8 @@ repositories {
 dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    //implementation 'org.postgresql:r2dbc-postgresql'
     implementation 'io.asyncer:r2dbc-mysql'
-
-    //runtimeOnly 'io.github.liuyuyu:embedded-mysql-spring-boot-starter:0.0.1'
-
-//    runtimeOnly 'com.h2database:h2'
-//    runtimeOnly 'io.r2dbc:r2dbc-h2'
-
     //implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     //
@@ -47,13 +46,14 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
     testImplementation "com.mysql:mysql-connector-j:$MYSQL_DRIVER_VERSION"
+    testImplementation "org.testcontainers:r2dbc"
     testImplementation "org.testcontainers:mysql"
+
+    //testImplementation "org.testcontainers:postgresql"
+    //testImplementation 'org.postgresql:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'io.projectreactor:reactor-test'
-
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {

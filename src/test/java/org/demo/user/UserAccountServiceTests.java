@@ -1,34 +1,37 @@
 package org.demo.user;
 
 
-import org.demo.testcontainer.MySQLContainersConfiguration;
+import org.demo.user.model.Customer;
+import org.demo.user.repository.CustomerRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.testcontainers.containers.MySQLContainer;
+import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
-@Testcontainers
-@SpringBootTest
-@Import(MySQLContainersConfiguration.class)
+@Testcontainers(disabledWithoutDocker = true)
+@DataR2dbcTest()
+@TestPropertySource( properties = {
+        "spring.r2dbc.url=r2dbc:tc:mysql:///databasename?TC_IMAGE_TAG=8.0.36",
+        "spring.r2dbc.username=user",
+        "spring.r2dbc.password=password"
+})
 public class UserAccountServiceTests {
 
 
     @Autowired
-    MySQLContainer<?> container;
+    private CustomerRepository customerRepository;
 
     @Test
-    void loadContext() {
+    void test_find_by_lastname() {
+
+        Customer customer = customerRepository.findByLastName("koduri").blockFirst();
+
+        Assertions.assertEquals("koduri", customer.getLastName());
 
     }
 
 
-    @Test
-    void test_container_dbuser_access() {
-        assertTrue(container.isRunning());
-    }
 }
