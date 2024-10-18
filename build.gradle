@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id 'org.springframework.boot' version '3.3.0'
+    id 'org.springframework.boot' version '3.2.10'
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -25,10 +25,18 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'io.asyncer:r2dbc-mysql'
+
+    //runtimeOnly 'io.github.liuyuyu:embedded-mysql-spring-boot-starter:0.0.1'
+
+//    runtimeOnly 'com.h2database:h2'
+//    runtimeOnly 'io.r2dbc:r2dbc-h2'
+
+    //implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation "com.mysql:mysql-connector-j:$MYSQL_DRIVER_VERSION"
+    //
 
 
     compileOnly 'org.projectlombok:lombok'
@@ -37,6 +45,8 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+
+    testImplementation "com.mysql:mysql-connector-j:$MYSQL_DRIVER_VERSION"
     testImplementation "org.testcontainers:mysql"
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter'
