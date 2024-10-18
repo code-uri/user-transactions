@@ -1,7 +1,7 @@
-package org.demo.user;
+package org.demo.useraccounts;
 
 import lombok.extern.slf4j.Slf4j;
-import org.demo.user.repository.CustomerRepository;
+import org.demo.useraccounts.repository.UserAccountRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,7 +18,7 @@ public class UserAccountsApplication {
     }
 
     @Bean
-    public CommandLineRunner init(CustomerRepository repository) {
+    public CommandLineRunner init(UserAccountRepository repository) {
 
         return (args) -> {
             repository.findAll().doOnNext(customer -> {

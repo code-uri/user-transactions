@@ -30,30 +30,38 @@ repositories {
 
 dependencies {
 
-    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-    //implementation 'org.postgresql:r2dbc-postgresql'
-    implementation 'io.asyncer:r2dbc-mysql'
-    //implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    //
-
-
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
-    annotationProcessor 'org.projectlombok:lombok'
-
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
-    testImplementation "com.mysql:mysql-connector-j:$MYSQL_DRIVER_VERSION"
+    //data
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    //implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     testImplementation "org.testcontainers:r2dbc"
+
+    //mysql
+    implementation 'io.asyncer:r2dbc-mysql'
+    testImplementation "com.mysql:mysql-connector-j"
     testImplementation "org.testcontainers:mysql"
 
+
+    //postgress
+    //implementation 'org.postgresql:r2dbc-postgresql'
     //testImplementation "org.testcontainers:postgresql"
     //testImplementation 'org.postgresql:postgresql'
+
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter'
+
     testImplementation 'io.projectreactor:reactor-test'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+
+
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
 }
 
 tasks.named('test') {

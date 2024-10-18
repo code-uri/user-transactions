@@ -1,8 +1,8 @@
-package org.demo.user;
+package org.demo.useraccounts;
 
 
-import org.demo.user.model.Customer;
-import org.demo.user.repository.CustomerRepository;
+import org.demo.useraccounts.model.UserAccount;
+import org.demo.useraccounts.repository.UserAccountRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +20,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 })
 public class UserAccountServiceTests {
 
-
     @Autowired
-    private CustomerRepository customerRepository;
+    private UserAccountRepository customerRepository;
 
     @Test
     void test_find_by_lastname() {
 
-        Customer customer = customerRepository.findByLastName("koduri").blockFirst();
+        UserAccount userAccount = customerRepository.findByLastName("koduri").blockFirst();
 
-        Assertions.assertEquals("koduri", customer.getLastName());
+        Assertions.assertEquals("koduri", userAccount.getLastName());
 
     }
 
