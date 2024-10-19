@@ -1,17 +1,13 @@
 package org.demo.useraccounts.repository;
 
 import org.demo.useraccounts.model.Transaction;
-import org.demo.useraccounts.model.UserAccount;
 import org.springframework.data.r2dbc.repository.Query;
-import org.springframework.data.repository.core.EntityInformation;
-import org.springframework.data.repository.core.support.AbstractEntityInformation;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 
-import static org.demo.useraccounts.model.Transaction.*;
+import static org.demo.useraccounts.model.Transaction.TxnType;
 
 
-public interface TransactionRepository extends ReactiveCrudRepository<Transaction, Long> {
+public interface TransactionRepository extends BaseRepository<Transaction, Long> {
 
     @Query("SELECT * FROM transactions WHERE user_account_id = :userAccountId")
     Flux<Transaction> findByUserAccountID(Long userAccountId);
