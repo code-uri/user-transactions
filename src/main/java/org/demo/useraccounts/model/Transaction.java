@@ -1,6 +1,9 @@
 package org.demo.useraccounts.model;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
@@ -9,14 +12,16 @@ import java.util.Date;
 
 
 @SuperBuilder
-@Data
 @Table("transactions")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Transaction extends BaseEntity<Long> {
 
-    private final Long userAccountId;
-    private final TxnType type;
-    private final double amount;
-    private final String currency;
+    private Long userAccountId;
+    private TxnType type;
+    private double amount;
+    private String currency;
 
     public static enum TxnType {
         CREDIT, DEBIT;

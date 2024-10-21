@@ -6,8 +6,7 @@ import reactor.core.publisher.Flux;
 
 import static org.demo.useraccounts.model.Transaction.TxnType;
 
-
-public interface TransactionRepository extends BaseRepository<Transaction, Long> {
+public interface TransactionRepository extends DeletedNotAllowed<Transaction, Long>, BaseRepository<Transaction, Long> {
 
     @Query("SELECT * FROM transactions WHERE user_account_id = :userAccountId")
     Flux<Transaction> findByUserAccountID(Long userAccountId);

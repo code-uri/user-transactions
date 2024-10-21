@@ -1,3 +1,4 @@
+/*
 package org.demo.useraccounts.controllers;
 
 import lombok.extern.slf4j.Slf4j;
@@ -14,4 +15,4 @@ public class TransactionsController extends AbstractCRUDController<Transaction, 
   protected TransactionsController(BaseRepository<Transaction, Long> repository) {
     super(repository);
   }
-}
+}*/

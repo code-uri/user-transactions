@@ -1,25 +1,29 @@
 package org.demo.useraccounts.model;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 
-import java.util.Date;
+import java.sql.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @SuperBuilder
 @Data
+@NoArgsConstructor
 public class BaseEntity<ID> {
 
     @Id
     private ID id;
 
-    boolean is_deleted;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    LocalDateTime createdOn;
 
-    Date createdOn;
-
-    Date modifiedOn;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    LocalDateTime modifiedOn;
 
 }

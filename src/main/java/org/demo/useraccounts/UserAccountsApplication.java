@@ -1,32 +1,28 @@
 package org.demo.useraccounts;
 
+import io.asyncer.r2dbc.mysql.MySqlConnectionFactoryProvider;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import lombok.extern.slf4j.Slf4j;
-import org.demo.useraccounts.repository.UserAccountRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.r2dbc.ConnectionFactoryOptionsBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 
-import java.time.Duration;
+import java.time.ZoneId;
 
+@OpenAPIDefinition
 @SpringBootApplication
 @Slf4j
 public class UserAccountsApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(UserAccountsApplication.class, args);
+    @Bean
+    public ConnectionFactoryOptionsBuilderCustomizer mysqlCustomizer() {
+        return (builder) ->
+                builder.option(MySqlConnectionFactoryProvider.SERVER_ZONE_ID, ZoneId.of(
+                        "UTC"));
     }
 
-    @Bean
-    public CommandLineRunner init(UserAccountRepository repository) {
-
-        return (args) -> {
-            repository.findAll().doOnNext(customer -> {
-                        log.info("--------------------------------");
-                        log.info(customer.toString());
-                        log.info("");
-                    })
-                    .blockLast(Duration.ofSeconds(10));
-        };
+    public static void main(String[] args) {
+        SpringApplication.run(UserAccountsApplication.class, args);
     }
 }

@@ -1,0 +1,37 @@
+debug: false
+spring:
+  application:
+    name: demo-app
+
+  resources:
+    add-mappings: false
+    web:
+      resources:
+        static-locations: classpath:/META-INF/resources/webjars/
+
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      INDENT_OUTPUT: true
+      WRITE_DATES_AS_TIMESTAMPS: false
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+
+logging:
+  level:
+    org.springdoc: DEBUG
+    org.springframework.r2dbc: INFO
+    org.springframework.data.r2dbc.connectionfactory: DEBUG
+
+  sql:
+    init:
+      mode: ALWAYS
+  r2dbc:
+    url: r2dbcs:mysql://localhost/user_accounts_db?serverZoneId=UTC
+    username: db-user
+    password: Password1
+    initialization-mode: always
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
