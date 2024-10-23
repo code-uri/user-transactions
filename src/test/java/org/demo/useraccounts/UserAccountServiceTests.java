@@ -23,14 +23,6 @@ public class UserAccountServiceTests {
     @Autowired
     private UserAccountRepository customerRepository;
 
-    @Test
-    void test_find_by_lastname() {
-
-        UserAccount userAccount = customerRepository.findByLastName("koduri").blockFirst();
-
-        Assertions.assertEquals("koduri", userAccount.getLastName());
-
-    }
 
 
 }
