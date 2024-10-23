@@ -1,4 +1,4 @@
-package org.demo.useraccounts.repository.callbacks;
+package org.demo.useraccounts.repository;
 
 import org.demo.useraccounts.model.BaseEntity;
 import org.reactivestreams.Publisher;
@@ -9,13 +9,14 @@ import org.springframework.data.relational.core.sql.SqlIdentifier;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Component
-class BaseEntityCallback implements BeforeSaveCallback<BaseEntity>, Ordered {
+class BaseEntityCallback implements BeforeSaveCallback<BaseEntity<? extends Serializable>>, Ordered {
 
 	@Override
-	public Publisher<BaseEntity> onBeforeSave(BaseEntity entity, OutboundRow row, SqlIdentifier table) {
+	public Publisher<BaseEntity<? extends Serializable>> onBeforeSave(BaseEntity<? extends Serializable> entity, OutboundRow row, SqlIdentifier table) {
 
 		if(entity.getCreatedOn()==null)
 			entity.setCreatedOn(LocalDateTime.now());
