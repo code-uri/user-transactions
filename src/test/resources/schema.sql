@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS user_accounts (
+    id SERIAL PRIMARY KEY PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    balance DOUBLE NOT NULL DEFAULT 0,
+    currency VARCHAR(4) NOT NULL DEFAULT 'EUR',
+    status VARCHAR(24) NOT NULL DEFAULT 'ACTIVE',
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE IF NOT EXISTS transactions (
+     id SERIAL PRIMARY KEY PRIMARY KEY,
+    user_account_id BIGINT NOT NULL,
+    txn_type VARCHAR(24) NOT NULL,
+    amount DOUBLE NOT NULL DEFAULT 0,
+    balance DOUBLE NOT NULL DEFAULT 0,
+    currency VARCHAR(4) NOT NULL,
+    status VARCHAR(24),
+    original_transaction_id BIGINT,
+    original_transaction_type VARCHAR(24) ,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

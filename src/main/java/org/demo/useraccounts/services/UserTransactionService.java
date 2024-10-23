@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -64,6 +65,7 @@ public class UserTransactionService {
      * @param request The transaction request details.
      * @return a Mono of TransactionResponse.
      */
+    @Transactional
     public Mono<TransactionResponse> handleTransaction(@Nonnull Long accountId, @Nonnull TransactionRequest request) {
         return getUserAccountRepository().findById(accountId)
                 .switchIfEmpty(Mono.error(new BaseRuntimeException(ErrorCode.RESOURCE_NOT_FOUND)))

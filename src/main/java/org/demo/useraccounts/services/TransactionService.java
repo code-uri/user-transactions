@@ -105,7 +105,7 @@ public class TransactionService {
         return userAccountRepository.debitAmount(transaction.getUserAccountId(), transaction.getAmount())
                 .handle((updateCount, sink) -> {
                     if (updateCount == 0)
-                        sink.error(new BaseRuntimeException("Insufficient balance!", ErrorCode.INTERNAL_ERROR));
+                        sink.error(new BaseRuntimeException("Insufficient balance!", ErrorCode.INVALID_REQUEST));
                     else
                         sink.next(updateCount);
                 })

@@ -40,6 +40,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
     testImplementation "org.testcontainers:r2dbc"
 
+    // https://mvnrepository.com/artifact/jakarta.el/jakarta.el-api
+    implementation 'jakarta.el:jakarta.el-api:6.0.1'
+    // https://mvnrepository.com/artifact/org.hibernate.validator/hibernate-validator
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation:3.3.4'
+
     //mysql
     implementation 'io.asyncer:r2dbc-mysql'
     testImplementation "com.mysql:mysql-connector-j"

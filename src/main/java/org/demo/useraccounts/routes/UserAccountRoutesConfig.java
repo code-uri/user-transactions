@@ -7,6 +7,7 @@ import org.demo.useraccounts.exceptions.BaseRuntimeException;
 import org.demo.useraccounts.exceptions.ErrorCode;
 import org.demo.useraccounts.model.UserAccount;
 import org.demo.useraccounts.repository.UserAccountRepository;
+import org.demo.useraccounts.validators.DefaultSpringBeanValidator;
 import org.springdoc.core.fn.builders.operation.Builder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,44 +36,20 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 @Slf4j
 public class UserAccountRoutesConfig {
 
-    public static final String INVALID_USER_ACCOUNT_ID_SUPPLIED = "Invalid User Account ID supplied";
-    public static final String RESOURCE_NOT_FOUND = "Error: Not Found";
-    public static final String OK = "OK";
-    public static final String USER_ACCOUNT_ID = "User Account Id";
-
-
-
-    private static final String accounts = "/accounts";
-    private static final String EXAMPLE_USER_ACCOUNT_RESPONSE = """
-            {
-                "id": 1,
-              "firstName": "Raghu",
-              "lastName": "Koduri",
-              "balance": 0,
-              "currency": "EUR"
-            }
-            """;
-    private static final String EXAMPLE_USER_ACCOUNT = """
-            {
-              "firstName": "Raghu",
-              "lastName": "Koduri",
-              "balance": 0,
-              "currency": "EUR"
-            }
-            """;
-
     private final UserAccountRepository service;
+    private final DefaultSpringBeanValidator defaultSpringBeanValidator;
 
-    public UserAccountRoutesConfig(UserAccountRepository service) {
+    public UserAccountRoutesConfig(UserAccountRepository service, DefaultSpringBeanValidator defaultSpringBeanValidator) {
         this.service = service;
+        this.defaultSpringBeanValidator = defaultSpringBeanValidator;
     }
 
     @Bean
     RouterFunction<ServerResponse> userAccountRoutes() {
-        return route().GET(accounts + "/{id}", findById(), findByIdOpenAPI()).build()
-                .and(route().POST(accounts, saveUserAccount(), saveUserAccountOpenAPI()).build())
-                .and(route().PUT(accounts + "/{id}",updateUserAccount(), updateUserAccountOpenAPI()).build())
-                .and(route().DELETE(accounts + "/{id}",suspendAccountById(),suspendAccountByIdOpenAPI()).build());
+        return route().GET(ACCOUNTS + "/{id}", findById(), findByIdOpenAPI()).build()
+                .and(route().POST(ACCOUNTS, saveUserAccount(), saveUserAccountOpenAPI()).build())
+                .and(route().PUT(ACCOUNTS + "/{id}", updateUserAccount(), updateUserAccountOpenAPI()).build())
+                .and(route().DELETE(ACCOUNTS + "/{id}", suspendAccountById(), suspendAccountByIdOpenAPI()).build());
 
     }
 
@@ -81,6 +58,7 @@ public class UserAccountRoutesConfig {
                 service.findById(idSupplier(req).get()).switchIfEmpty(Mono.error(new BaseRuntimeException(ErrorCode.RESOURCE_NOT_FOUND))),
                 UserAccount.class);
     }
+
     private Consumer<Builder> findByIdOpenAPI() {
         return ops -> ops.tag("accounts")
                 .operationId("findById").summary("Find by ID").tags(new String[]{"UserAccount"})
@@ -92,14 +70,11 @@ public class UserAccountRoutesConfig {
                 .response(responseBuilder().responseCode("404").description(RESOURCE_NOT_FOUND));
     }
 
-
     private HandlerFunction<ServerResponse> saveUserAccount() {
-        return req -> req.body(BodyExtractors.toMono(UserAccount.class))
-                .doOnNext(userAccount -> {
-                    log.info("UserAccount {}", userAccount);
-                })
-                .flatMap(service::save).flatMap(userAccount -> ok().bodyValue(userAccount));
+        return req -> defaultSpringBeanValidator.validateAndGet(UserAccount.class, req, service::save)
+                .flatMap(o -> ok().bodyValue(o));
     }
+
     private Consumer<Builder> saveUserAccountOpenAPI() {
         return ops -> ops.tag("accounts")
                 .operationId("save").summary("Create user account").tags(new String[]{"UserAccount"})
@@ -116,16 +91,22 @@ public class UserAccountRoutesConfig {
                 .response(responseBuilder().responseCode("404").description("Resource not found"));
     }
 
-
-
-
-
     public HandlerFunction<ServerResponse> updateUserAccount() {
         return req -> req.body(BodyExtractors.toMono(UserAccount.class))
-                .flatMap(account -> service.findById(idSupplier(req).get())
+                .flatMap(account -> service.findById(idSupplier(req).get()).thenReturn(account)
                         .switchIfEmpty(Mono.error(new BaseException(ErrorCode.RESOURCE_NOT_FOUND)))
-                        .flatMap(service::save)).then(ok().build());
+                        .flatMap(userAccount -> {
+
+                            return defaultSpringBeanValidator.validateAndGet(UserAccount.class, req,
+                                    service::save)
+                                    .doOnNext(next -> {
+                                        log.info("next {}", next);
+                                    });
+                        }))
+                .flatMap(userAccount
+                        -> ok().bodyValue(userAccount));
     }
+
     private Consumer<Builder> updateUserAccountOpenAPI() {
         return ops -> ops.tag("accounts")
                 .operationId("save").summary("Update user account").tags(new String[]{"UserAccount"})
@@ -148,11 +129,12 @@ public class UserAccountRoutesConfig {
             Long id = idSupplier(req).get();
             return req.body(BodyExtractors.toMono(UserAccount.class))
                     .flatMap(account -> service.existsById(id)
-                            .filter(exists -> exists)
+                            .filter(exists -> !exists)
                             .switchIfEmpty(Mono.error(new BaseException(ErrorCode.RESOURCE_NOT_FOUND)))
                             .flatMap(exists -> service.suspendAccountById(id))).then(ok().build());
         };
     }
+
     private Consumer<Builder> suspendAccountByIdOpenAPI() {
         return ops -> ops.tag("accounts")
                 .operationId("suspendAccountById").summary("Suspend user account").tags(new String[]{"UserAccount"})
@@ -173,4 +155,27 @@ public class UserAccountRoutesConfig {
             }
         };
     }
+
+
+    public static final String RESOURCE_NOT_FOUND = "Error: Not Found";
+    public static final String OK = "OK";
+    public static final String USER_ACCOUNT_ID = "User Account Id";
+    private static final String ACCOUNTS = "/accounts";
+    private static final String EXAMPLE_USER_ACCOUNT_RESPONSE = """
+            {
+                "id": 1,
+              "firstName": "Raghu",
+              "lastName": "Koduri",
+              "balance": 0,
+              "currency": "EUR"
+            }
+            """;
+    private static final String EXAMPLE_USER_ACCOUNT = """
+            {
+              "firstName": "Raghu",
+              "lastName": "Koduri",
+              "balance": 0,
+              "currency": "EUR"
+            }
+            """;
 }
