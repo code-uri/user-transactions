@@ -6,7 +6,6 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.reactive.result.view.RedirectView;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.sql.SQLException;
