@@ -17,21 +17,23 @@ spring:
     deserialization:
       FAIL_ON_UNKNOWN_PROPERTIES: false
 
-logging:
-  level:
-    org.springdoc: DEBUG
-    org.springframework.r2dbc: INFO
-    org.springframework.data.r2dbc.connectionfactory: DEBUG
+  logging:
+    level:
+      org.springdoc: INFO
+      org.springframework.r2dbc: DEBUG
+      org.springframework.data.r2dbc.connectionfactory: DEBUG
 
   sql:
     init:
+      enabled: true
       mode: ALWAYS
+
+
+  jpa:
+      show-sql: true
+
   r2dbc:
     url: r2dbcs:mysql://localhost/user_accounts_db?serverZoneId=UTC
     username: db-user
     password: Password1
     initialization-mode: always
-
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false

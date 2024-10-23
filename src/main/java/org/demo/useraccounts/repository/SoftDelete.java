@@ -1,22 +1,29 @@
-//package org.demo.useraccounts.repository;
-//
-//import org.reactivestreams.Publisher;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
-//import org.springframework.data.r2dbc.repository.Modifying;
-//import org.springframework.data.r2dbc.repository.Query;
-//import org.springframework.data.repository.NoRepositoryBean;
-//import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-//import reactor.core.publisher.Flux;
-//import reactor.core.publisher.Mono;
-//
-//import java.io.Serializable;
-//
-//@NoRepositoryBean
-//public interface SoftDelete<T, ID extends Serializable>  {
-//
-//
-//    @Query("UPDATE #{#tableName} SET is_deleted = true WHERE id = :id")
-//    @Modifying
-//    Mono<Void> softDeleteById(ID id);
-//}
+package org.demo.useraccounts.repository;
+
+import org.springframework.data.r2dbc.repository.Modifying;
+import org.springframework.data.r2dbc.repository.Query;
+import org.springframework.data.repository.NoRepositoryBean;
+import reactor.core.publisher.Mono;
+
+import java.io.Serializable;
+
+/**
+ * This interface defines a contract for soft deletion of entities.
+ * It provides a method to soft delete an entity by setting a flag.
+ *
+ * @param <T>  the type of the entity
+ * @param <ID> the type of the entity's identifier
+ */
+@NoRepositoryBean
+public interface SoftDelete<T, ID extends Serializable>  {
+
+    /**
+     * Soft deletes an entity by updating the 'is_deleted' flag to true.
+     *
+     * @param id the identifier of the entity to be soft deleted
+     * @return a Mono that completes once the entity is soft deleted
+     */
+    @Query("UPDATE #{#tableName} SET is_deleted = true WHERE id = :id")
+    @Modifying
+    Mono<Void> softDeleteById(ID id);
+}
