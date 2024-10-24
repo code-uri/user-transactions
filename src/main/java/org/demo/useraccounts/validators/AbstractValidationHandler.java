@@ -1,3 +1,4 @@
+/*
 package org.demo.useraccounts.validators;
 
 import org.springframework.http.HttpStatus;
@@ -49,3 +50,4 @@ public abstract class AbstractValidationHandler<T, U extends Validator> {
                 errors.getAllErrors().toString());
     }
 }
+*/

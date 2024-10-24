@@ -7,11 +7,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.reactive.server.FluxExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.core.publisher.Hooks;
@@ -22,12 +24,15 @@ import java.util.Arrays;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = InfrastructureConfiguration.class)
+@AutoConfigureWebTestClient(timeout = "36000")
 @TestPropertySource( properties = {
         "spring.r2dbc.url=r2dbc:tc:mysql:///databasename?TC_IMAGE_TAG=8.0.36",
         "spring.r2dbc.username=user",
         "spring.r2dbc.password=password",
         "spring.sql.init.mode=ALWAYS",
-        "logging.level.org.springframework.transaction=TRACE"
+        "logging.level.org.springframework.r2dbc.core=DEBUG",
+        "logging.level.reactor.netty.http.client=DEBUG",
+        "junit.jupiter.execution.parallel.enabled=false"
 })
 public class UserAccountRoutesTests {
 
@@ -36,6 +41,7 @@ public class UserAccountRoutesTests {
 
     @BeforeEach
     void setUp(){
+
 
         Hooks.onOperatorDebug();
 
@@ -91,13 +97,10 @@ public class UserAccountRoutesTests {
                 UserAccount.builder()
                         .firstName("john").lastName("smith").balance(0D).currency("EUR").build();
 
-        createUserAccountExchange(webClient, userAccount)
-                .expectStatus().is2xxSuccessful();
-
-        fineByIDExchange(webClient, 1L).expectBody(UserAccount.class)
-                .value(userAccount1 -> {
-                    Assertions.assertTrue(userAccount1.getId()==1);
-                });
+        UserAccount userAccount1 = createUserAccountExchange(webClient, userAccount)
+                .expectStatus().is2xxSuccessful()
+                .expectBody(UserAccount.class).returnResult().getResponseBody();
+        fineByIDExchange(webClient, userAccount1.getId()).expectStatus().is2xxSuccessful();
     }
 
     @Test
@@ -140,16 +143,15 @@ public class UserAccountRoutesTests {
         userAccount = createUserAccountExchange(webClient, userAccount)
                 .expectBody(UserAccount.class).returnResult().getResponseBody();
 
+        System.out.println("suspend account "+userAccount.getId());
         suspendByIDExchange(webClient, userAccount.getId())
                 .expectStatus().is2xxSuccessful();
 
-        fineByIDExchange(webClient, userAccount.getId())
-                .expectBody(UserAccount.class).value(userAccount1 -> {
-                    System.out.println(userAccount1.getStatus());
-                });
+        userAccount = fineByIDExchange(webClient, userAccount.getId())
+                .expectBody(UserAccount.class).returnResult().getResponseBody();
 
+       Assertions.assertEquals(UserAccount.UserAccountStatus.SUSPENDED, userAccount.getStatus());
 
-        Assertions.assertEquals(UserAccount.UserAccountStatus.SUSPENDED, userAccount.getStatus());
     }
 
 

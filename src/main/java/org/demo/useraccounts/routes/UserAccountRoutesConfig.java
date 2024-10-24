@@ -55,7 +55,11 @@ public class UserAccountRoutesConfig {
 
     private HandlerFunction<ServerResponse> findById() {
         return req -> ok().body(
-                service.findById(idSupplier(req).get()).switchIfEmpty(Mono.error(new BaseRuntimeException(ErrorCode.RESOURCE_NOT_FOUND))),
+                service.findById(idSupplier(req).get())
+                        .doOnNext(userAccount -> {
+                            log.info("found useraccount {}", userAccount);
+                        })
+                        .switchIfEmpty(Mono.error(new BaseRuntimeException(ErrorCode.RESOURCE_NOT_FOUND))),
                 UserAccount.class);
     }
 
@@ -100,7 +104,7 @@ public class UserAccountRoutesConfig {
                             return defaultSpringBeanValidator.validateAndGet(UserAccount.class, req,
                                     service::save)
                                     .doOnNext(next -> {
-                                        log.info("next {}", next);
+                                        log.info("updated account {}", next);
                                     });
                         }))
                 .flatMap(userAccount
@@ -127,11 +131,17 @@ public class UserAccountRoutesConfig {
     HandlerFunction<ServerResponse> suspendAccountById() {
         return req -> {
             Long id = idSupplier(req).get();
-            return req.body(BodyExtractors.toMono(UserAccount.class))
-                    .flatMap(account -> service.existsById(id)
-                            .filter(exists -> !exists)
-                            .switchIfEmpty(Mono.error(new BaseException(ErrorCode.RESOURCE_NOT_FOUND)))
-                            .flatMap(exists -> service.suspendAccountById(id))).then(ok().build());
+            return service.existsById(id)
+                    .doOnNext(aBoolean -> {
+                        log.info("acccount exists");
+                    })
+                    .filter(exists -> exists)
+                    .switchIfEmpty(Mono.error(new BaseException(ErrorCode.RESOURCE_NOT_FOUND)))
+                    .doOnNext(aBoolean -> {
+                        log.info("acccount account {}", id);
+                    })
+                    .flatMap(exists -> service.suspendAccountById(id))
+                    .then(ok().build());
         };
     }
 
