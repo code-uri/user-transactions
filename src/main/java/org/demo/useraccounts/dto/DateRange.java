@@ -38,8 +38,12 @@ public class DateRange {
 
     public static class DateRangeBuilder  {
         public boolean isValid() {
-            if((this.from!=null && this.to!=null) || (this.from==null && this.to ==null))
+            if((this.from==null && this.to ==null))
                 return true;
+
+            if(this.from!=null && this.to!=null && this.to.compareTo(this.from) < 0){
+                throw new  BaseRuntimeException("To Date should be greater-than from date.", ErrorCode.INVALID_REQUEST);
+            }
 
             throw new BaseRuntimeException("Invalid date range", ErrorCode.INVALID_REQUEST);
         }

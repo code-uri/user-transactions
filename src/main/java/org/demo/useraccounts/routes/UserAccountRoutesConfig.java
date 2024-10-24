@@ -100,7 +100,10 @@ public class UserAccountRoutesConfig {
         return req -> req.body(BodyExtractors.toMono(UserAccount.class))
                 .flatMap(account -> service.findById(idSupplier(req).get()).thenReturn(account)
                         .switchIfEmpty(Mono.error(new BaseException(ErrorCode.RESOURCE_NOT_FOUND)))
-                        .flatMap(userAccount -> service.save(defaultSpringBeanValidator.validate(userAccount))))
+                        .flatMap(userAccount -> {
+                            userAccount.setId(idSupplier(req).get());
+                            return service.save(defaultSpringBeanValidator.validate(userAccount));
+                        }))
                 .flatMap(userAccount
                         -> ok().bodyValue(userAccount));
     }

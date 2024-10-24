@@ -108,7 +108,7 @@ public class UserTransactionRoutesConfig {
 
     private Consumer<Builder> handleTransactionOpenAPI() {
         return ops -> ops.tag("transactions")
-                .operationId("submitTransaction").summary("Submit transaction request.").tags(new String[]{"MyTransactions"})
+                .operationId("submitTransaction").summary("Submit transaction request.").tags(new String[]{"User Transactions"})
                 .parameter(parameterBuilder().in(ParameterIn.PATH).name("id").description("User Account Id").required(true))
                 .requestBody(requestBodyBuilder()
                         .content(contentBuilder()
@@ -141,7 +141,7 @@ public class UserTransactionRoutesConfig {
 
     private Consumer<Builder> transactionHistoryOpenAPI() {
         return ops -> ops.tag("transactions")
-                .operationId("transactionHistory").summary("Get transaction history").tags(new String[]{"MyTransactions"})
+                .operationId("transactionHistory").summary("Get transaction history").tags(new String[]{"User Transactions"})
                 .parameter(parameterBuilder().in(ParameterIn.PATH).name("id").description("User Account Id").required(true))
                 .parameter(parameterBuilder().in(ParameterIn.QUERY).name("from").description("From date").example("2024-10-01"))
                 .parameter(parameterBuilder().in(ParameterIn.QUERY).name("to").description("To date").example("2034-10-01"))
