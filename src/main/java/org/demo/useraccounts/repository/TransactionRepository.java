@@ -14,7 +14,7 @@ import static org.demo.useraccounts.model.Transaction.TxnType;
  * Interface for handling transactions in the repository.
  * Extends DeletedNotAllowed and BaseRepository interfaces.
  */
-public interface TransactionRepository extends DeletedNotAllowed<Transaction, Long>, BaseRepository<Transaction, Long> {
+public interface TransactionRepository extends  BaseRepository<Transaction, Long> {
 
     /**
      * Find transactions by user account ID.

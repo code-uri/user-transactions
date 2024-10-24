@@ -1,0 +1,97 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SoftDelete</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.demo.useraccounts.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: SoftDelete (org.demo.useraccounts.repository)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">SoftDelete</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.demo.useraccounts.repository;
+&nbsp;
+&nbsp;import org.springframework.data.r2dbc.repository.Modifying;
+&nbsp;import org.springframework.data.r2dbc.repository.Query;
+&nbsp;import org.springframework.data.repository.NoRepositoryBean;
+&nbsp;import reactor.core.publisher.Mono;
+&nbsp;
+&nbsp;import java.io.Serializable;
+&nbsp;
+&nbsp;/**
+&nbsp; * This interface defines a contract for soft deletion of entities.
+&nbsp; * It provides a method to soft delete an entity by setting a flag.
+&nbsp; *
+&nbsp; * @param &lt;T&gt;  the type of the entity
+&nbsp; * @param &lt;ID&gt; the type of the entity&#39;s identifier
+&nbsp; */
+&nbsp;@NoRepositoryBean
+&nbsp;public interface SoftDelete&lt;T, ID extends Serializable&gt;  {
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Soft deletes an entity by updating the &#39;is_deleted&#39; flag to true.
+&nbsp;     *
+&nbsp;     * @param id the identifier of the entity to be soft deleted
+&nbsp;     * @return a Mono that completes once the entity is soft deleted
+&nbsp;     */
+&nbsp;    @Query(&quot;UPDATE #{#tableName} SET is_deleted = true WHERE id = :id&quot;)
+&nbsp;    @Modifying
+&nbsp;    Mono&lt;Void&gt; softDeleteById(ID id);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-10-24 18:10</div>
+</div>
+</body>
+</html>

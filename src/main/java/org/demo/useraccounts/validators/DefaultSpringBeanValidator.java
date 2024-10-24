@@ -20,22 +20,19 @@ public class DefaultSpringBeanValidator {
            this.validator = validator;
        }
 
-       public <T> Mono<T> validateAndGet(Class<T> validationClass, final ServerRequest request, Function<T, Mono<T>> function ) {
-           return request.bodyToMono(validationClass)
-                   .flatMap(body -> {
-                       Errors errors = new BeanPropertyBindingResult(
-                               body,
-                               validationClass.getName());
-                       validator.validate(body, errors);
+       public <T >T validate(T entity) {
+           Errors errors = new BeanPropertyBindingResult(
+                   entity,
+                   entity.getClass().getName());
 
-                       if (errors.getAllErrors().isEmpty()) {
-                           return function.apply(body);
-                       } else {
-                           throw new ResponseStatusException(
-                                   HttpStatus.BAD_REQUEST,
-                                   errors.getAllErrors().toString());
-                       }
-                   });
+           validator.validate(entity, errors);
+
+           if (errors.getAllErrors().isEmpty()) {
+               return entity;
+           } else {
+               throw new ResponseStatusException(
+                       HttpStatus.BAD_REQUEST,
+                       errors.getAllErrors().toString());
+           }
        }
-
    }

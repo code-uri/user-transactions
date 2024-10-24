@@ -1,0 +1,285 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TransactionService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.demo.useraccounts.services</a>
+</div>
+
+<h1>Coverage Summary for Class: TransactionService (org.demo.useraccounts.services)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TransactionService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (13/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    69.2%
+  </span>
+  <span class="absValue">
+    (9/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    95%
+  </span>
+  <span class="absValue">
+    (38/40)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TransactionService$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">TransactionService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    69.2%
+  </span>
+  <span class="absValue">
+    (9/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    95.1%
+  </span>
+  <span class="absValue">
+    (39/41)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.demo.useraccounts.services;
+&nbsp;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.demo.useraccounts.exceptions.BaseException;
+&nbsp;import org.demo.useraccounts.exceptions.BaseRuntimeException;
+&nbsp;import org.demo.useraccounts.exceptions.ErrorCode;
+&nbsp;import org.demo.useraccounts.model.Transaction;
+&nbsp;import org.demo.useraccounts.repository.TransactionRepository;
+&nbsp;import org.demo.useraccounts.repository.UserAccountRepository;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import reactor.core.publisher.Mono;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.Objects;
+&nbsp;
+&nbsp;/**
+&nbsp; * Service class for handling transactions related operations.
+&nbsp; */
+&nbsp;@Getter
+&nbsp;@Service
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;public class TransactionService {
+&nbsp;
+&nbsp;
+&nbsp;    private final UserAccountRepository userAccountRepository;
+&nbsp;    private final TransactionRepository transactionRepository;
+&nbsp;
+<b class="fc">&nbsp;    TransactionService(UserAccountRepository userAccountRepository, TransactionRepository transactionRepository) {</b>
+<b class="fc">&nbsp;        this.userAccountRepository = userAccountRepository;</b>
+<b class="fc">&nbsp;        this.transactionRepository = transactionRepository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles a transaction based on its type (DEBIT, CREDIT, ROLLBACK).
+&nbsp;     *
+&nbsp;     * @param transaction The transaction to be processed.
+&nbsp;     * @return A Mono of Transaction representing the processed transaction.
+&nbsp;     */
+&nbsp;    @Transactional
+&nbsp;    public Mono&lt;Transaction&gt; handleTransaction(Transaction transaction) {
+<b class="pc">&nbsp;        return switch (transaction.getTxnType()) {</b>
+<b class="fc">&nbsp;            case DEBIT -&gt; handleDebit(transaction);</b>
+<b class="fc">&nbsp;            case CREDIT -&gt; handleCredit(transaction);</b>
+<b class="fc">&nbsp;            case ROLLBACK -&gt; handleRollback(transaction);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles a ROLLBACK transaction.
+&nbsp;     *
+&nbsp;     * @param transaction The ROLLBACK transaction to be processed.
+&nbsp;     * @return A Mono of Transaction representing the processed ROLLBACK transaction.
+&nbsp;     */
+&nbsp;    private Mono&lt;Transaction&gt; handleRollback(Transaction transaction) {
+<b class="fc">&nbsp;        return transactionRepository.findById(Objects.requireNonNull(transaction.getOriginalTransactionId()))</b>
+<b class="fc">&nbsp;                .flatMap(originalTransaction -&gt; {</b>
+<b class="pc">&nbsp;                    if (originalTransaction.getTxnType() != Transaction.TxnType.CREDIT &amp;&amp; originalTransaction.getTxnType() != Transaction.TxnType.DEBIT)</b>
+<b class="nc">&nbsp;                        Mono.error(new BaseException(&quot;Cannot rollback transaction %s. Should be reconciled manually.&quot;.formatted(originalTransaction.getId())</b>
+&nbsp;                                , ErrorCode.INVALID_REQUEST));
+&nbsp;
+<b class="pc">&nbsp;                    Transaction.TxnType txnType = originalTransaction.getTxnType() == Transaction.TxnType.CREDIT</b>
+<b class="nc">&nbsp;                            ? Transaction.TxnType.DEBIT</b>
+<b class="fc">&nbsp;                            : Transaction.TxnType.CREDIT;</b>
+&nbsp;
+<b class="fc">&nbsp;                    transaction.setOriginalTransactionType(originalTransaction.getTxnType());</b>
+<b class="fc">&nbsp;                    transaction.setStatus(Transaction.TransactionStatus.COMPLETED);</b>
+&nbsp;
+<b class="fc">&nbsp;                    return handleTransaction(Transaction.builder().amount(originalTransaction.getAmount())</b>
+<b class="fc">&nbsp;                            .txnType(txnType)</b>
+<b class="fc">&nbsp;                            .status(Transaction.TransactionStatus.COMPLETED)</b>
+<b class="fc">&nbsp;                            .originalTransactionId(originalTransaction.getId()).currency(originalTransaction.getCurrency()).userAccountId(originalTransaction.getUserAccountId()).build())</b>
+<b class="fc">&nbsp;                            .then(transactionRepository.save(transaction));</b>
+&nbsp;
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles a CREDIT transaction.
+&nbsp;     *
+&nbsp;     * @param transaction The CREDIT transaction to be processed.
+&nbsp;     * @return A Mono of Transaction representing the processed CREDIT transaction.
+&nbsp;     */
+&nbsp;    private Mono&lt;Transaction&gt; handleCredit(Transaction transaction) {
+<b class="fc">&nbsp;        return userAccountRepository.creditAmount(transaction.getUserAccountId(), transaction.getAmount())</b>
+<b class="pc">&nbsp;                .filter(count -&gt; count &gt; 0)</b>
+<b class="fc">&nbsp;                .flatMap(count -&gt; {</b>
+<b class="fc">&nbsp;                    return userAccountRepository.findById(transaction.getUserAccountId())</b>
+<b class="fc">&nbsp;                            .flatMap(updatedAccount -&gt; {</b>
+<b class="fc">&nbsp;                                transaction.setBalance(updatedAccount.getBalance());</b>
+<b class="fc">&nbsp;                                return transactionRepository.save(transaction);</b>
+&nbsp;                            });
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles a DEBIT transaction.
+&nbsp;     *
+&nbsp;     * @param transaction The DEBIT transaction to be processed.
+&nbsp;     * @return A Mono of Transaction representing the processed DEBIT transaction.
+&nbsp;     */
+&nbsp;    private Mono&lt;Transaction&gt; handleDebit(Transaction transaction) {
+<b class="fc">&nbsp;        return userAccountRepository.debitAmount(transaction.getUserAccountId(), transaction.getAmount())</b>
+<b class="fc">&nbsp;                .handle((updateCount, sink) -&gt; {</b>
+<b class="fc">&nbsp;                    if (updateCount == 0)</b>
+<b class="fc">&nbsp;                        sink.error(new BaseRuntimeException(&quot;Insufficient balance!&quot;, ErrorCode.INVALID_REQUEST));</b>
+&nbsp;                    else
+<b class="fc">&nbsp;                        sink.next(updateCount);</b>
+&nbsp;                })
+<b class="fc">&nbsp;                .flatMap(updateCount -&gt; {</b>
+<b class="fc">&nbsp;                    return userAccountRepository.findById(transaction.getUserAccountId())</b>
+<b class="fc">&nbsp;                            .flatMap(updatedAccount -&gt; {</b>
+<b class="fc">&nbsp;                                transaction.setBalance(updatedAccount.getBalance());</b>
+<b class="fc">&nbsp;                                return transactionRepository.save(transaction);</b>
+&nbsp;                            });
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Aggregates the total amount for transactions based on user account ID, transaction type, and status.
+&nbsp;     *
+&nbsp;     * @param userAccountID The ID of the user account.
+&nbsp;     * @param txnType       The type of transaction (CREDIT, DEBIT, ROLLBACK).
+&nbsp;     * @param status        The status of the transaction (IN_PROGRESS, COMPLETED, FAILED, REVERTED).
+&nbsp;     * @return A Mono of Double representing the aggregated amount.
+&nbsp;     */
+&nbsp;    public Mono&lt;Double&gt; aggregateByUserAccountIdAndTxnTypeAndStatus(Long userAccountID, Transaction.TxnType txnType, Transaction.TransactionStatus status) {
+<b class="fc">&nbsp;        return transactionRepository.aggregateByUserAccountIdAndTxnTypeAndStatusAndDate(userAccountID, txnType, status, LocalDate.now());</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-10-24 18:10</div>
+</div>
+</body>
+</html>

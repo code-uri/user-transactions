@@ -67,7 +67,12 @@ public class UserTransactionService {
      */
     @Transactional
     public Mono<TransactionResponse> handleTransaction(@Nonnull Long accountId, @Nonnull TransactionRequest request) {
+        log.info("received id {} request {}",accountId, request);
+
         return getUserAccountRepository().findById(accountId)
+                .doOnNext(userAccount -> {
+                    log.info("found useraccount {}", userAccount);
+                })
                 .switchIfEmpty(Mono.error(new BaseRuntimeException(ErrorCode.RESOURCE_NOT_FOUND)))
                 .flatMap(userAccount -> {
                     request.setAccountId(userAccount.getId());
@@ -126,7 +131,7 @@ public class UserTransactionService {
      */
     private Mono<Transaction> validateDebitTransaction(TransactionRequest request) {
         Objects.requireNonNull(request.getAmount());
-        if(request.getAmount()==0)
+        if(request.getAmount() < 1)
             return Mono.error(new BaseRuntimeException("Transaction amount should be greater-than 0", ErrorCode.INVALID_REQUEST));
 
         return transactionService.aggregateByUserAccountIdAndTxnTypeAndStatus(
@@ -151,12 +156,9 @@ public class UserTransactionService {
      * @return a Mono of Transaction.
      */
     private Mono<Transaction> validateRollbackTransaction(TransactionRequest request) {
-        if (request.getTxnType() != Transaction.TxnType.ROLLBACK) {
-            Objects.requireNonNull(request.getAmount(), "Transaction amount cannot be null");
-        }
 
-        if (request.getTxnType() == Transaction.TxnType.ROLLBACK) {
-            Objects.requireNonNull(request.getOriginalTransactionId(), "Original Transaction ID cannot be null for ROLLBACK");
+        if (request.getOriginalTransactionId()==null) {
+            return Mono.error(new BaseRuntimeException("Original Transaction ID cannot be null for ROLLBACK request", ErrorCode.INVALID_REQUEST));
         }
 
         return transactionRepository.findByOriginalTransactionIdAndTxnTypeAndTransactionStatus(
@@ -190,8 +192,9 @@ public class UserTransactionService {
         }
 
         if (dateRange != null) {
-            criteriaList.add(Criteria.where("created_on").greaterThanOrEquals(dateRange.getFrom()));
-            criteriaList.add(Criteria.where("created_on").lessThanOrEquals(dateRange.getTo()));
+
+            criteriaList.add(Criteria.where("created_on").greaterThanOrEquals(dateRange.getFrom().atStartOfDay()));
+            criteriaList.add(Criteria.where("created_on").lessThanOrEquals(dateRange.getTo().plusDays(1).atStartOfDay()));
         }
 
         return transactionRepository.getPage(r2dbcEntityTemplate, Criteria.from(criteriaList), pageable, Transaction.class);

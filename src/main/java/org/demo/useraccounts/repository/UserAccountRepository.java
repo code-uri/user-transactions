@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
  * Repository interface for UserAccount entity operations.
  * Extends DeletedNotAllowed and BaseRepository interfaces for additional functionality.
  */
-public interface UserAccountRepository extends DeletedNotAllowed<UserAccount, Long>, BaseRepository<UserAccount, Long> {
+public interface UserAccountRepository extends  BaseRepository<UserAccount, Long> {
 
     /**
      * Suspends a user account by setting its status to 'SUSPENDED'.

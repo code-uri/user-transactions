@@ -1,0 +1,151 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > BaseRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.demo.useraccounts.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseRepository (org.demo.useraccounts.repository)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseRepository</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.demo.useraccounts.repository;
+&nbsp;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.PageImpl;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+&nbsp;import org.springframework.data.relational.core.query.Criteria;
+&nbsp;import org.springframework.data.repository.NoRepositoryBean;
+&nbsp;import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+&nbsp;import reactor.core.publisher.Mono;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import static org.springframework.data.relational.core.query.Query.query;
+&nbsp;
+&nbsp;/**
+&nbsp; * Base repository interface for reactive CRUD operations.
+&nbsp; * This interface extends ReactiveCrudRepository to provide basic CRUD functionality.
+&nbsp; *
+&nbsp; * @param &lt;T&gt;  the type of the entity
+&nbsp; * @param &lt;ID&gt; the type of the entity&#39;s identifier
+&nbsp; */
+&nbsp;@NoRepositoryBean
+&nbsp;public interface BaseRepository&lt;T, ID&gt; extends ReactiveCrudRepository&lt;T, ID&gt; {
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Utility function which retrieves a page of entities based on the provided criteria and pageable information.
+&nbsp;     *
+&nbsp;     * @param template the R2dbcEntityTemplate used for database operations
+&nbsp;     * @param criteria the criteria to filter the entities
+&nbsp;     * @param pageable the paging information
+&nbsp;     * @param clz the class type of the entity
+&nbsp;     * @return a Mono emitting a Page containing the entities and total count
+&nbsp;     */
+&nbsp;    default Mono&lt;Page&lt;T&gt;&gt; getPage(R2dbcEntityTemplate template, Criteria criteria, Pageable pageable, Class&lt;T&gt; clz) {
+<b class="fc">&nbsp;        Mono&lt;List&lt;T&gt;&gt; list = template.select(clz)</b>
+<b class="fc">&nbsp;                .matching(query(criteria).with(pageable))</b>
+<b class="fc">&nbsp;                .all()</b>
+<b class="fc">&nbsp;                .collectList();</b>
+<b class="fc">&nbsp;        Mono&lt;Long&gt; count = template.select(clz)</b>
+<b class="fc">&nbsp;                .matching(query(criteria))</b>
+<b class="fc">&nbsp;                .count();</b>
+<b class="fc">&nbsp;        return Mono.zip(list, count)</b>
+<b class="fc">&nbsp;                .map(tuple -&gt; new PageImpl&lt;&gt;(tuple.getT1(), pageable, tuple.getT2()));</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-10-24 18:10</div>
+</div>
+</body>
+</html>

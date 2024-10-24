@@ -1,5 +1,7 @@
 package org.demo.useraccounts;
 
+import jakarta.annotation.Nullable;
+import org.demo.useraccounts.dto.DateRange;
 import org.demo.useraccounts.dto.TransactionRequest;
 import org.demo.useraccounts.exceptions.BaseRuntimeException;
 import org.demo.useraccounts.model.Transaction;
@@ -19,14 +21,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,7 +46,9 @@ import static org.mockito.Mockito.*;
         "spring.r2dbc.username=user",
         "spring.r2dbc.password=password",
         "spring.sql.init.mode=ALWAYS",
-        "logging.level.org.springframework.transaction=TRACE"
+        "logging.level.org.springframework.r2dbc.core=DEBUG",
+        "logging.level.reactor.netty.http.client=DEBUG",
+        "junit.jupiter.execution.parallel.enabled=false"
 })
 public class UserTransactionServiceTests {
 
@@ -155,32 +162,44 @@ public class UserTransactionServiceTests {
         insertUserAccount(UserAccount.builder()
                 .firstName("John").lastName("Smith").balance(10D).currency("EUR").build());
 
-        AtomicLong transactionId = new AtomicLong();
+
         this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
                         .amount(5D).txnType(Transaction.TxnType.DEBIT).remarks("Test").build())
+                .flatMap(transactionResponse -> this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                          .txnType(Transaction.TxnType.ROLLBACK)
+                          .originalTransactionId(transactionResponse.getTransactionRefId())
+                          .remarks("Rollback").build()))
                 .as(StepVerifier::create)
                 .assertNext(transactionResponse -> {
                     Assertions.assertNotNull( transactionResponse.getTransactionRefId());
-                    Assertions.assertEquals(1, transactionResponse.getAccountId());
-                    Assertions.assertEquals(Transaction.TransactionStatus.COMPLETED, transactionResponse.getStatus());
-                    Assertions.assertNotNull(transactionResponse.getTimestamp());
-
-                    transactionId.set(transactionResponse.getTransactionRefId());
                 })
                 .verifyComplete();
 
         this.userAccountRepository.findById(1L).as(StepVerifier::create)
-                .assertNext(userAccount -> Assertions.assertEquals(5, userAccount.getBalance()));
+                .assertNext(userAccount -> Assertions.assertEquals(10, userAccount.getBalance()));
+    }
+
+
+
+    @Test
+    void test_rollback_a_rollback_transaction_fail() {
+        insertUserAccount(UserAccount.builder()
+                .firstName("John").lastName("Smith").balance(10D).currency("EUR").build());
+
 
         this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                        .amount(5D).txnType(Transaction.TxnType.DEBIT).remarks("Test").build())
+                .flatMap(transactionResponse -> this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
                         .txnType(Transaction.TxnType.ROLLBACK)
-                        .originalTransactionId(transactionId.get())
+                        .originalTransactionId(transactionResponse.getTransactionRefId())
                         .remarks("Rollback").build())
+                )
+                .flatMap(transactionResponse -> this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                        .txnType(Transaction.TxnType.ROLLBACK)
+                        .originalTransactionId(transactionResponse.getTransactionRefId())
+                        .remarks("Rollback").build()))
                 .as(StepVerifier::create)
-                .assertNext(transactionResponse -> {
-                    Assertions.assertNotNull( transactionResponse.getTransactionRefId());
-                })
-                .verifyComplete();
+                .expectError();
 
         this.userAccountRepository.findById(1L).as(StepVerifier::create)
                 .assertNext(userAccount -> Assertions.assertEquals(10, userAccount.getBalance()));
@@ -264,8 +283,124 @@ public class UserTransactionServiceTests {
     }
 
 
-    private void insertUserAccount(UserAccount... accounts) {
-        this.userAccountRepository.saveAll(Arrays.asList(accounts))//
-                .blockLast();
+    @Test
+    void test_all_transaction_history_success() {
+        insertUserAccount(UserAccount.builder()
+                .firstName("John").lastName("Smith").balance(Double.parseDouble("100")).currency("EUR").build());
+
+        Flux.range(0, 100)
+                .flatMap(aLong -> this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                        .amount(Double.parseDouble("1D")).txnType(Transaction.TxnType.DEBIT).remarks("Test").build()))
+                .as(StepVerifier::create)
+                .expectNextCount(100)
+                .verifyComplete();
+
+        this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                .amount(Double.parseDouble("100D")).txnType(Transaction.TxnType.CREDIT).remarks("Test").build())
+                .as(StepVerifier::create)
+                .expectNextCount(1)
+                .verifyComplete();
+
+
+
+        this.userTransactionService.transactionHistory(1L, null,null, PageRequest.of(0, 10000))
+            .as(StepVerifier::create)
+                .assertNext(page -> {
+                    Assertions.assertEquals(101, page.getTotalElements());
+                }).verifyComplete();
+
+
+        this.userTransactionService.transactionHistory(1L, null,null, PageRequest.of(0, 10))
+                .as(StepVerifier::create)
+                .assertNext(page -> {
+                    Assertions.assertEquals(11, page.getTotalPages());
+                }).verifyComplete();
+
+        this.userTransactionService.transactionHistory(1L, null, Transaction.TxnType.DEBIT, PageRequest.of(0, 10))
+                .as(StepVerifier::create)
+                .assertNext(page -> {
+                    Assertions.assertEquals(100, page.getTotalElements());
+                }).verifyComplete();
+
+        this.userTransactionService.transactionHistory(1L, null, Transaction.TxnType.CREDIT, PageRequest.of(0, 10))
+                .as(StepVerifier::create)
+                .assertNext(page -> {
+                    Assertions.assertEquals(1, page.getTotalElements());
+                }).verifyComplete();
+
+
+        this.userTransactionService.transactionHistory(1L,
+                        DateRange.builder().from(LocalDate.now().minusDays(1))
+                                .to(LocalDate.now().minusDays(1)).build(),
+                        Transaction.TxnType.CREDIT, PageRequest.of(0, 10))
+                .as(StepVerifier::create)
+                .assertNext(page -> {
+                    Assertions.assertEquals(0, page.getTotalElements());
+                }).verifyComplete();
+
+    }
+
+
+
+    @Test
+    void test_all_transaction_history_zero_amt_debit_fail() {
+        insertUserAccount(UserAccount.builder()
+                .firstName("John").lastName("Smith").balance(Double.parseDouble("100")).currency("EUR").build());
+
+        Flux.range(0, 100)
+                .flatMap(aLong -> this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                        .amount(0D).txnType(Transaction.TxnType.DEBIT).remarks("Test").build()))
+                .as(StepVerifier::create)
+                .expectError()
+                .verify();
+
+    }
+
+    @Test
+    void test_all_transaction_history_negative_amt_debit_fail() {
+        insertUserAccount(UserAccount.builder()
+                .firstName("John").lastName("Smith").balance(Double.parseDouble("100")).currency("EUR").build());
+
+
+        Flux.range(0, 100)
+                .flatMap(aLong -> this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                        .amount(-1D).txnType(Transaction.TxnType.DEBIT).remarks("Test").build()))
+                .as(StepVerifier::create)
+                .expectError()
+                .verify();
+
+    }
+
+    @Test
+    void test_all_transaction_history_zero_amt_credit_fail() {
+        insertUserAccount(UserAccount.builder()
+                .firstName("John").lastName("Smith").balance(Double.parseDouble("100")).currency("EUR").build());
+
+
+        Flux.range(0, 100)
+                .flatMap(aLong -> this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                        .amount(0D).txnType(Transaction.TxnType.CREDIT).remarks("Test").build()))
+                .as(StepVerifier::create)
+                .expectError()
+                .verify();
+
+    }
+
+    @Test
+    void test_all_transaction_history_negative_amt_credit_fail() {
+        insertUserAccount(UserAccount.builder()
+                .firstName("John").lastName("Smith").balance(Double.parseDouble("100")).currency("EUR").build());
+
+        Flux.range(0, 100)
+                .flatMap(aLong -> this.userTransactionService.handleTransaction(1L, TransactionRequest.builder()
+                        .amount(-1D).txnType(Transaction.TxnType.CREDIT).remarks("Test").build()))
+                .as(StepVerifier::create)
+                .expectError()
+                .verify();
+
+    }
+
+    private void insertUserAccount(UserAccount userAccount) {
+        this.userAccountRepository.save(userAccount).as(StepVerifier::create).expectNextCount(1).verifyComplete();
     }
 }

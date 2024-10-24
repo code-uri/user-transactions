@@ -1,0 +1,113 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TransactionRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.demo.useraccounts.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: TransactionRepository (org.demo.useraccounts.repository)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">TransactionRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.demo.useraccounts.repository;
+&nbsp;
+&nbsp;import org.demo.useraccounts.dto.DateRange;
+&nbsp;import org.demo.useraccounts.model.Transaction;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.r2dbc.repository.Query;
+&nbsp;import reactor.core.publisher.Flux;
+&nbsp;import reactor.core.publisher.Mono;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;
+&nbsp;import static org.demo.useraccounts.model.Transaction.TxnType;
+&nbsp;/**
+&nbsp; * Interface for handling transactions in the repository.
+&nbsp; * Extends DeletedNotAllowed and BaseRepository interfaces.
+&nbsp; */
+&nbsp;public interface TransactionRepository extends  BaseRepository&lt;Transaction, Long&gt; {
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Find transactions by user account ID.
+&nbsp;     *
+&nbsp;     * @param userAccountId the ID of the user account
+&nbsp;     * @return a Flux of transactions
+&nbsp;     */
+&nbsp;    @Query(&quot;SELECT * FROM transactions WHERE user_account_id = :userAccountId&quot;)
+&nbsp;    Flux&lt;Transaction&gt; findByUserAccountID(Long userAccountId);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Find transactions by user account ID and transaction type.
+&nbsp;     *
+&nbsp;     * @param userAccountId the ID of the user account
+&nbsp;     * @param txnType       the type of transaction (CREDIT or DEBIT)
+&nbsp;     * @return a Flux of transactions
+&nbsp;     */
+&nbsp;    @Query(&quot;SELECT * FROM transactions WHERE user_account_id = :userAccountId and txn_type = :txnType&quot;)
+&nbsp;    Flux&lt;Transaction&gt; findByUserAccountIDAndTxnType(Long userAccountId, TxnType txnType);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT SUM(amount) FROM transactions  WHERE user_account_id = :userAccountId AND txn_type = :txnType and status = :status AND DATE(created_on) = :currentDate&quot; )
+&nbsp;    Mono&lt;Double&gt; aggregateByUserAccountIdAndTxnTypeAndStatusAndDate(Long userAccountId, TxnType txnType, Transaction.TransactionStatus status, LocalDate currentDate);
+&nbsp;
+&nbsp;
+&nbsp;    @Query(&quot;SELECT * FROM transactions WHERE original_transaction_id = :originalTransactionId and txn_type = :txnType and status = :status ORDER BY id DESC LIMIT 1&quot;)
+&nbsp;    Mono&lt;Transaction&gt; findByOriginalTransactionIdAndTxnTypeAndTransactionStatus(Long originalTransactionId, Transaction.TxnType txnType, Transaction.TransactionStatus status);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-10-24 18:10</div>
+</div>
+</body>
+</html>

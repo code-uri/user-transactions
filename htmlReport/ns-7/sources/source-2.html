@@ -1,0 +1,355 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > UserTransactionService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.demo.useraccounts.services</a>
+</div>
+
+<h1>Coverage Summary for Class: UserTransactionService (org.demo.useraccounts.services)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">UserTransactionService</td>
+<td class="coverageStat">
+  <span class="percent">
+    92.3%
+  </span>
+  <span class="absValue">
+    (12/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (13/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    96.8%
+  </span>
+  <span class="absValue">
+    (60/62)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">UserTransactionService$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">UserTransactionService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    92.9%
+  </span>
+  <span class="absValue">
+    (13/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (13/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    96.8%
+  </span>
+  <span class="absValue">
+    (61/63)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.demo.useraccounts.services;
+&nbsp;
+&nbsp;import jakarta.annotation.Nonnull;
+&nbsp;import jakarta.annotation.Nullable;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.demo.useraccounts.dto.DateRange;
+&nbsp;import org.demo.useraccounts.dto.TransactionRequest;
+&nbsp;import org.demo.useraccounts.dto.TransactionResponse;
+&nbsp;import org.demo.useraccounts.exceptions.BaseException;
+&nbsp;import org.demo.useraccounts.exceptions.BaseRuntimeException;
+&nbsp;import org.demo.useraccounts.exceptions.ErrorCode;
+&nbsp;import org.demo.useraccounts.model.Transaction;
+&nbsp;import org.demo.useraccounts.repository.TransactionRepository;
+&nbsp;import org.demo.useraccounts.repository.UserAccountRepository;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+&nbsp;import org.springframework.data.relational.core.query.Criteria;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import reactor.core.publisher.Mono;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Objects;
+&nbsp;
+&nbsp;/**
+&nbsp; * Service class for handling user transactions.
+&nbsp; * This class is intended to contain business logic related to user transactions.
+&nbsp; */
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@Getter
+&nbsp;@Service
+&nbsp;public class UserTransactionService {
+&nbsp;
+&nbsp;    public static final int THRESHOLD_AMOUNT = 10_000;
+&nbsp;    private final UserAccountRepository userAccountRepository;
+&nbsp;    private final TransactionRepository transactionRepository;
+&nbsp;    private final TransactionService transactionService;
+&nbsp;    private final R2dbcEntityTemplate r2dbcEntityTemplate;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Constructor for UserTransactionService class.
+&nbsp;     *
+&nbsp;     * @param transactionRepository The repository for transactions.
+&nbsp;     * @param userAccountRepository The repository for user accounts.
+&nbsp;     * @param transactionService The service for handling transactions.
+&nbsp;     * @param r2dbcEntityTemplate entityTemplate for custom queries.
+&nbsp;     */
+&nbsp;    public UserTransactionService(TransactionRepository transactionRepository,
+&nbsp;                                  UserAccountRepository userAccountRepository,
+&nbsp;                                  TransactionService transactionService,
+<b class="fc">&nbsp;                                  R2dbcEntityTemplate r2dbcEntityTemplate) {</b>
+<b class="fc">&nbsp;        this.transactionRepository = transactionRepository;</b>
+<b class="fc">&nbsp;        this.userAccountRepository = userAccountRepository;</b>
+<b class="fc">&nbsp;        this.transactionService = transactionService;</b>
+<b class="fc">&nbsp;        this.r2dbcEntityTemplate = r2dbcEntityTemplate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles a transaction request for a specific user account.
+&nbsp;     *
+&nbsp;     * @param accountId The ID of the user account.
+&nbsp;     * @param request The transaction request details.
+&nbsp;     * @return a Mono of TransactionResponse.
+&nbsp;     */
+&nbsp;    @Transactional
+&nbsp;    public Mono&lt;TransactionResponse&gt; handleTransaction(@Nonnull Long accountId, @Nonnull TransactionRequest request) {
+<b class="fc">&nbsp;        log.info(&quot;received id {} request {}&quot;,accountId, request);</b>
+&nbsp;
+<b class="fc">&nbsp;        return getUserAccountRepository().findById(accountId)</b>
+<b class="fc">&nbsp;                .doOnNext(userAccount -&gt; {</b>
+<b class="fc">&nbsp;                    log.info(&quot;found useraccount {}&quot;, userAccount);</b>
+&nbsp;                })
+<b class="fc">&nbsp;                .switchIfEmpty(Mono.error(new BaseRuntimeException(ErrorCode.RESOURCE_NOT_FOUND)))</b>
+<b class="fc">&nbsp;                .flatMap(userAccount -&gt; {</b>
+<b class="fc">&nbsp;                    request.setAccountId(userAccount.getId());</b>
+<b class="fc">&nbsp;                    request.setCurrency(userAccount.getCurrency());</b>
+<b class="fc">&nbsp;                    return validate(request);</b>
+&nbsp;                })
+&nbsp;
+<b class="fc">&nbsp;                .flatMap(transactionService::handleTransaction)</b>
+<b class="fc">&nbsp;                .map(transaction -&gt; {</b>
+<b class="fc">&nbsp;                    return TransactionResponse.builder()</b>
+<b class="fc">&nbsp;                            .accountId(transaction.getUserAccountId())</b>
+<b class="fc">&nbsp;                            .status(transaction.getStatus())</b>
+<b class="fc">&nbsp;                            .timestamp(transaction.getCreatedOn())</b>
+<b class="fc">&nbsp;                            .transactionRefId(transaction.getId())</b>
+<b class="fc">&nbsp;                            .build();</b>
+&nbsp;                })
+<b class="fc">&nbsp;                .switchIfEmpty(Mono.error(new BaseException(ErrorCode.INTERNAL_ERROR)));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Validates the transaction request based on the transaction type.
+&nbsp;     *
+&nbsp;     * @param request The transaction request to validate.
+&nbsp;     * @return a Mono of Transaction.
+&nbsp;     */
+&nbsp;    private Mono&lt;Transaction&gt; validate(TransactionRequest request) {
+<b class="pc">&nbsp;        return switch (request.getTxnType()) {</b>
+<b class="fc">&nbsp;            case DEBIT, CREDIT -&gt; validateDebitTransaction(request);</b>
+<b class="fc">&nbsp;            case ROLLBACK -&gt; validateRollbackTransaction(request);</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Creates a new Transaction object based on the TransactionRequest.
+&nbsp;     *
+&nbsp;     * @param request The transaction request to create a transaction from.
+&nbsp;     * @return a Transaction object.
+&nbsp;     */
+&nbsp;    private Transaction createTransaction(TransactionRequest request) {
+<b class="fc">&nbsp;        return Transaction.builder()</b>
+<b class="fc">&nbsp;                .amount(request.getAmount())</b>
+<b class="fc">&nbsp;                .txnType(request.getTxnType())</b>
+<b class="fc">&nbsp;                .status(Transaction.TransactionStatus.COMPLETED)</b>
+<b class="fc">&nbsp;                .currency(request.getCurrency())</b>
+<b class="fc">&nbsp;                .originalTransactionId(request.getOriginalTransactionId())</b>
+<b class="fc">&nbsp;                .userAccountId(request.getAccountId())</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Validates a debit transaction request.
+&nbsp;     *
+&nbsp;     * @param request The debit transaction request to validate.
+&nbsp;     * @return a Mono of Transaction.
+&nbsp;     */
+&nbsp;    private Mono&lt;Transaction&gt; validateDebitTransaction(TransactionRequest request) {
+<b class="fc">&nbsp;        Objects.requireNonNull(request.getAmount());</b>
+<b class="fc">&nbsp;        if(request.getAmount() &lt; 1)</b>
+<b class="fc">&nbsp;            return Mono.error(new BaseRuntimeException(&quot;Transaction amount should be greater-than 0&quot;, ErrorCode.INVALID_REQUEST));</b>
+&nbsp;
+<b class="fc">&nbsp;        return transactionService.aggregateByUserAccountIdAndTxnTypeAndStatus(</b>
+<b class="fc">&nbsp;                        request.getAccountId(),</b>
+&nbsp;                        Transaction.TxnType.DEBIT,
+&nbsp;                        Transaction.TransactionStatus.COMPLETED)
+<b class="fc">&nbsp;                .switchIfEmpty(Mono.just(0D))</b>
+<b class="fc">&nbsp;                .handle((amount, sink) -&gt; {</b>
+<b class="fc">&nbsp;                    if (amount + request.getAmount() &gt; THRESHOLD_AMOUNT) {</b>
+<b class="fc">&nbsp;                        sink.error(new BaseRuntimeException(&quot;Transaction limit %d exceeded.&quot;</b>
+<b class="fc">&nbsp;                                .formatted(THRESHOLD_AMOUNT), ErrorCode.CONDITION_FAILED));</b>
+&nbsp;                    } else {
+<b class="fc">&nbsp;                        sink.next(createTransaction(request));</b>
+&nbsp;                    }
+&nbsp;                });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Validates a rollback transaction request.
+&nbsp;     *
+&nbsp;     * @param request The rollback transaction request to validate.
+&nbsp;     * @return a Mono of Transaction.
+&nbsp;     */
+&nbsp;    private Mono&lt;Transaction&gt; validateRollbackTransaction(TransactionRequest request) {
+&nbsp;
+<b class="fc">&nbsp;        if (request.getOriginalTransactionId()==null) {</b>
+<b class="fc">&nbsp;            return Mono.error(new BaseRuntimeException(&quot;Original Transaction ID cannot be null for ROLLBACK request&quot;, ErrorCode.INVALID_REQUEST));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return transactionRepository.findByOriginalTransactionIdAndTxnTypeAndTransactionStatus(</b>
+<b class="fc">&nbsp;                        request.getOriginalTransactionId(),</b>
+&nbsp;                        Transaction.TxnType.ROLLBACK,
+&nbsp;                        Transaction.TransactionStatus.COMPLETED)
+<b class="fc">&nbsp;                .doOnNext(transaction -&gt; {</b>
+<b class="nc">&nbsp;                    throw new BaseRuntimeException(&quot;Transaction with id %s has already been reverted on %s.&quot;</b>
+<b class="nc">&nbsp;                            .formatted(request.getOriginalTransactionId(), transaction.getCreatedOn()),</b>
+&nbsp;                            ErrorCode.INVALID_REQUEST);
+&nbsp;                })
+<b class="fc">&nbsp;                .thenReturn(createTransaction(request));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Retrieves the transaction history for a user account based on filters.
+&nbsp;     *
+&nbsp;     * @param userAccount The ID of the user account.
+&nbsp;     * @param dateRange The date range filter.
+&nbsp;     * @param txnType The transaction type filter.
+&nbsp;     * @param pageable The pagination information.
+&nbsp;     * @return a Mono of Page&lt;Transaction&gt;.
+&nbsp;     */
+&nbsp;    public Mono&lt;Page&lt;Transaction&gt;&gt; transactionHistory(Long userAccount, @Nullable DateRange dateRange, @Nullable Transaction.TxnType txnType, Pageable pageable) {
+&nbsp;
+<b class="fc">&nbsp;        List&lt;Criteria&gt; criteriaList = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        criteriaList.add(Criteria.where(&quot;user_account_id&quot;).is(userAccount));</b>
+&nbsp;
+<b class="fc">&nbsp;        if (txnType != null) {</b>
+<b class="fc">&nbsp;            criteriaList.add(Criteria.where(&quot;txn_type&quot;).is(txnType));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (dateRange != null) {</b>
+&nbsp;
+<b class="fc">&nbsp;            criteriaList.add(Criteria.where(&quot;created_on&quot;).greaterThanOrEquals(dateRange.getFrom().atStartOfDay()));</b>
+<b class="fc">&nbsp;            criteriaList.add(Criteria.where(&quot;created_on&quot;).lessThanOrEquals(dateRange.getTo().plusDays(1).atStartOfDay()));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return transactionRepository.getPage(r2dbcEntityTemplate, Criteria.from(criteriaList), pageable, Transaction.class);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-10-24 18:10</div>
+</div>
+</body>
+</html>

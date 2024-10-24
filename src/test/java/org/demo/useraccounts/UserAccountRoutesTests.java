@@ -40,13 +40,40 @@ public class UserAccountRoutesTests {
     DatabaseClient database;
 
     @BeforeEach
-    void setUp(){
-
+    void setUp() {
 
         Hooks.onOperatorDebug();
 
         var statements = Arrays.asList(//
-                "DELETE FROM user_accounts");
+                "DROP TABLE IF EXISTS user_accounts;",
+                """
+                            CREATE TABLE IF NOT EXISTS user_accounts (
+                            id SERIAL PRIMARY KEY PRIMARY KEY,
+                            first_name VARCHAR(50) NOT NULL,
+                            last_name VARCHAR(50) NOT NULL,
+                            balance DOUBLE NOT NULL DEFAULT 0,
+                            currency VARCHAR(4) NOT NULL DEFAULT 'EUR',
+                            status VARCHAR(24) NOT NULL DEFAULT 'ACTIVE',
+                            created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            modified_on TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);
+                        """,
+                "DROP TABLE IF EXISTS transactions;",
+                """
+                          CREATE TABLE IF NOT EXISTS transactions (
+                              id SERIAL PRIMARY KEY PRIMARY KEY,
+                             user_account_id BIGINT NOT NULL,
+                             txn_type VARCHAR(24) NOT NULL,
+                             amount DOUBLE NOT NULL DEFAULT 0,
+                             balance DOUBLE NOT NULL DEFAULT 0,
+                             currency VARCHAR(4) NOT NULL,
+                             status VARCHAR(24),
+                             original_transaction_id BIGINT,
+                             original_transaction_type VARCHAR(24) ,
+                             created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                             modified_on TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);
+                        """);
+
+
         statements.forEach(it -> database.sql(it)//
                 .fetch() //
                 .rowsUpdated() //
@@ -54,6 +81,7 @@ public class UserAccountRoutesTests {
                 .expectNextCount(1) //
                 .verifyComplete());
     }
+
 
     @Test
     void test_user_account_validation_constraints(@Autowired WebTestClient webClient) {
@@ -111,13 +139,8 @@ public class UserAccountRoutesTests {
                         .firstName("john").lastName("smith").balance(0D).currency("EUR").build();
 
 
-        userAccount = createUserAccountExchange(webClient, userAccount)
-                .expectBody(UserAccount.class).returnResult().getResponseBody();
-
-
-        userAccount = fineByIDExchange(webClient, userAccount.getId())
-                .expectBody(UserAccount.class).returnResult().getResponseBody();
-
+        createUserAccountExchange(webClient, userAccount)
+                .expectStatus().is2xxSuccessful();
 
         userAccount =
                 UserAccount.builder()

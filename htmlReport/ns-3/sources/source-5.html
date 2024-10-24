@@ -1,0 +1,89 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SystemError</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.demo.useraccounts.exceptions</a>
+</div>
+
+<h1>Coverage Summary for Class: SystemError (org.demo.useraccounts.exceptions)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">SystemError</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.demo.useraccounts.exceptions;
+&nbsp;
+&nbsp;/**
+&nbsp; * Represents a system error interface that provides methods to retrieve error code and message.
+&nbsp; */
+&nbsp;public interface SystemError {
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Retrieves the error code associated with the system error.
+&nbsp;     *
+&nbsp;     * @return The ErrorCode enum representing the error code.
+&nbsp;     */
+&nbsp;    public ErrorCode getErrorCode();
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Retrieves the error message associated with the system error.
+&nbsp;     *
+&nbsp;     * @return A String containing the error message.
+&nbsp;     */
+&nbsp;    public String getMessage();
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-10-24 18:10</div>
+</div>
+</body>
+</html>

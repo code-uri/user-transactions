@@ -1,0 +1,159 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > WebResponseEntityExceptionHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.demo.useraccounts.exceptions</a>
+</div>
+
+<h1>Coverage Summary for Class: WebResponseEntityExceptionHandler (org.demo.useraccounts.exceptions)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WebResponseEntityExceptionHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    60%
+  </span>
+  <span class="absValue">
+    (3/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (6/8)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.demo.useraccounts.exceptions;
+&nbsp;
+&nbsp;import org.springframework.dao.DataAccessException;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ProblemDetail;
+&nbsp;import org.springframework.web.bind.annotation.ControllerAdvice;
+&nbsp;import org.springframework.web.bind.annotation.ExceptionHandler;
+&nbsp;import org.springframework.web.bind.annotation.ResponseBody;
+&nbsp;import org.springframework.web.server.ServerWebExchange;
+&nbsp;
+&nbsp;import java.sql.SQLException;
+&nbsp;/**
+&nbsp; * WebResponseEntityExceptionHandler class handles exceptions globally for the application.
+&nbsp; */
+&nbsp;@ControllerAdvice
+<b class="fc">&nbsp;class WebResponseEntityExceptionHandler extends org.springframework.web.reactive.result.method.annotation.ResponseEntityExceptionHandler {</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles database-related errors and redirects to a specific error view.
+&nbsp;     *
+&nbsp;     * @param e The exception to be handled.
+&nbsp;     * @return A RedirectView object pointing to the error view.
+&nbsp;     */
+&nbsp;    @ExceptionHandler({SQLException.class, DataAccessException.class})
+&nbsp;    public ProblemDetail databaseError(ServerWebExchange exchange, Exception e) {
+<b class="nc">&nbsp;        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles custom BaseException errors and returns a ProblemDetail object with error details.
+&nbsp;     *
+&nbsp;     * @param exchange The ServerWebExchange object.
+&nbsp;     * @param e The BaseException to be handled.
+&nbsp;     * @return A ProblemDetail object with error details.
+&nbsp;     */
+&nbsp;    @ExceptionHandler(value = { BaseException.class})
+&nbsp;    @ResponseBody
+&nbsp;    public ProblemDetail handleError(ServerWebExchange exchange, SystemError e) {
+<b class="nc">&nbsp;        return handleSystemError(exchange, e);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @ExceptionHandler(value = { BaseRuntimeException.class})
+&nbsp;    @ResponseBody
+&nbsp;    public ProblemDetail handleBaseRuntimeError(ServerWebExchange exchange, SystemError e) {
+<b class="fc">&nbsp;        return handleSystemError(exchange, e);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static ProblemDetail handleSystemError(ServerWebExchange exchange, SystemError e) {
+<b class="fc">&nbsp;        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(e.getErrorCode().getHttpStatus(), e.getMessage());</b>
+<b class="fc">&nbsp;        problemDetail.setTitle(e.getErrorCode().getMessage());</b>
+&nbsp;        //problemDetail.setInstance();
+<b class="fc">&nbsp;        problemDetail.setType(exchange.getRequest().getURI());</b>
+<b class="fc">&nbsp;        return problemDetail;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-10-24 18:10</div>
+</div>
+</body>
+</html>

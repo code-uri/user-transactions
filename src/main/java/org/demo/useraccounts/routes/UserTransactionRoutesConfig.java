@@ -4,11 +4,14 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import lombok.extern.slf4j.Slf4j;
 import org.demo.useraccounts.dto.DateRange;
 import org.demo.useraccounts.dto.TransactionRequest;
+import org.demo.useraccounts.dto.TransactionResponse;
 import org.demo.useraccounts.exceptions.BaseRuntimeException;
 import org.demo.useraccounts.exceptions.ErrorCode;
 import org.demo.useraccounts.model.Transaction;
 import org.demo.useraccounts.model.UserAccount;
+import org.demo.useraccounts.repository.UserAccountRepository;
 import org.demo.useraccounts.services.UserTransactionService;
+import org.demo.useraccounts.validators.DefaultSpringBeanValidator;
 import org.springdoc.core.fn.builders.operation.Builder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +27,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -77,10 +81,13 @@ public class UserTransactionRoutesConfig {
 
 
     private final UserTransactionService userTransactionService;
+    private final DefaultSpringBeanValidator defaultSpringBeanValidator;
 
-    public UserTransactionRoutesConfig(UserTransactionService userTransactionService) {
-        this.userTransactionService = userTransactionService;
+    public UserTransactionRoutesConfig(UserTransactionService service, DefaultSpringBeanValidator defaultSpringBeanValidator) {
+        this.userTransactionService = service;
+        this.defaultSpringBeanValidator = defaultSpringBeanValidator;
     }
+
 
     @Bean
     RouterFunction<ServerResponse> userTransactionRoutes() {
@@ -92,10 +99,11 @@ public class UserTransactionRoutesConfig {
 
 
     public HandlerFunction<ServerResponse> handleTransaction() {
-        return req -> req.body(BodyExtractors.toMono(TransactionRequest.class))
-                .flatMap(transactionRequest -> userTransactionService.handleTransaction(idSupplier(req).get(),
-                                transactionRequest)
-                        .flatMap(transactionResponse -> ok().bodyValue(transactionResponse)));
+
+        return req ->  req.bodyToMono(TransactionRequest.class).flatMap(transactionRequest
+                        -> userTransactionService.handleTransaction(idSupplier(req).get(),
+                        defaultSpringBeanValidator.validate(transactionRequest)))
+                .flatMap(o -> ok().bodyValue(o));
     }
 
     private Consumer<Builder> handleTransactionOpenAPI() {
@@ -168,7 +176,15 @@ public class UserTransactionRoutesConfig {
     }
 
     private static DateRange getDateRange(ServerRequest req) {
-        return req.queryParam("from").map(s -> {
+        Optional<String> from= req.queryParam("from");
+        Optional<String> to= req.queryParam("to");
+        if(from.isPresent() && to.isEmpty()){
+            throw new BaseRuntimeException("To date is required", ErrorCode.INVALID_REQUEST);
+        }
+        else if(to.isPresent() && from.isEmpty()){
+            throw new BaseRuntimeException("From date is required", ErrorCode.INVALID_REQUEST);
+        }
+        else if(from.isPresent() && to.isPresent()){
             try {
                 return DateRange.builder()
                         .from(req.queryParam("from").map(LocalDate::parse).orElse(null))
@@ -177,7 +193,8 @@ public class UserTransactionRoutesConfig {
             } catch (Exception e) {
                 throw new BaseRuntimeException(e.getMessage(), ErrorCode.INVALID_REQUEST);
             }
-        }).orElse(null);
+        }
+        return null;
     }
 
     private static Supplier<Long> idSupplier(ServerRequest req) {

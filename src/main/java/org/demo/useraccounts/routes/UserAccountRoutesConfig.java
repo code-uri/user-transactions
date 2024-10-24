@@ -75,7 +75,8 @@ public class UserAccountRoutesConfig {
     }
 
     private HandlerFunction<ServerResponse> saveUserAccount() {
-        return req -> defaultSpringBeanValidator.validateAndGet(UserAccount.class, req, service::save)
+        return req -> req.bodyToMono(UserAccount.class).flatMap(userAccount -> service.save(defaultSpringBeanValidator.validate(userAccount)))
+                .doOnNext(userAccount -> log.info("found account {}", userAccount))
                 .flatMap(o -> ok().bodyValue(o));
     }
 
@@ -99,14 +100,7 @@ public class UserAccountRoutesConfig {
         return req -> req.body(BodyExtractors.toMono(UserAccount.class))
                 .flatMap(account -> service.findById(idSupplier(req).get()).thenReturn(account)
                         .switchIfEmpty(Mono.error(new BaseException(ErrorCode.RESOURCE_NOT_FOUND)))
-                        .flatMap(userAccount -> {
-
-                            return defaultSpringBeanValidator.validateAndGet(UserAccount.class, req,
-                                    service::save)
-                                    .doOnNext(next -> {
-                                        log.info("updated account {}", next);
-                                    });
-                        }))
+                        .flatMap(userAccount -> service.save(defaultSpringBeanValidator.validate(userAccount))))
                 .flatMap(userAccount
                         -> ok().bodyValue(userAccount));
     }
